@@ -2,6 +2,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,6 +18,13 @@ public class User {
         this.username = username;
         this.balance = balance;
     }
+
+    public User(JSONObject jsonObject){
+        this.username = jsonObject.getString("username");
+        this.balance = jsonObject.getDouble("ballance");
+        loadLibary();
+    }
+
 
 
     public void add_application(Application app){
@@ -61,12 +69,37 @@ public class User {
         }
     }
 
+    public void loadLibary(){
+        try {
+            String jsonStringGames = new String(Files.readAllBytes(Paths.get(this.username+"_games.json")));
+            String jsonStringMedia = new String(Files.readAllBytes(Paths.get(this.username+"_media.json")));
+            JSONArray jsonArrayGames = new JSONArray(jsonStringGames);
+            JSONArray jsonArrayMedia = new JSONArray(jsonStringMedia);
+            for (int i = 0; i < jsonArrayGames.length(); i++) {
+                JSONObject jsonObject = jsonArrayGames.getJSONObject(i);
+                Game g = new Game(jsonObject.getString("name"),jsonObject.getDouble("price"),jsonObject.getInt("number_of_players"),jsonObject.getInt("age_restriction"),jsonObject.getInt("rating"));
+                games.add(g);
+            }
+            for (int i = 0; i < jsonArrayMedia.length(); i++) {
+                JSONObject jsonObject = jsonArrayMedia.getJSONObject(i);
+                Media m = new Media(jsonObject.getString("name"),jsonObject.getDouble("price"),jsonObject.getString("type"));
+                media.add(m);
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
     public JSONObject toJSONObject(){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("username",username);
         jsonObject.put("ballance",balance);
+        saveLibary();
         return jsonObject;
     }
+
+
     public ArrayList<Application> getApplications() {
         ArrayList<Application> applications = new ArrayList<>();
         for (Game g: games) {
@@ -77,5 +110,10 @@ public class User {
             applications.add(m);
         }
         return applications;
+    }
+
+    @Override
+    public String toString() {
+        return username + " " + balance +" euro";
     }
 }
